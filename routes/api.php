@@ -4,6 +4,7 @@ use App\Http\Controllers\Apis\RegisterController;
 use App\Http\Controllers\Apis\AuthController;
 use App\Http\Controllers\Apis\ProductController;
 use App\Http\Controllers\Apis\CustomerController;
+use App\Http\Controllers\Apis\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,3 +47,5 @@ Route::put('/customer/{id}', [CustomerController::class, 'update'])->name('api.c
 Route::delete('/remove-customer/{id}', [CustomerController::class, 'destroy'])->name('api.customers.destroy');
 
 # Módulo de Facturación
+// ORDER
+Route::post('/register-orders', [OrderController::class, 'create'])->name('api.order.create');
