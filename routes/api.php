@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // Test
-// Route::get('/products', [ProductController::class, 'getProductCatalog'])->name('api.products.catalog');
+Route::get('/products', [ProductController::class, 'getProductCatalog'])->name('api.products.catalog');
 Route::post('/register-products', [ProductController::class, 'create'])->name('api.products.create');
 Route::put('/product/{id}', [ProductController::class, 'update'])->name('api.products.update');
 Route::delete('/remove-product/{id}', [ProductController::class, 'destroy'])->name('api.products.destroy');

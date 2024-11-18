@@ -7,71 +7,104 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class ProductController extends Controller
 {
-    // Corregir
-    /* public function getProductCatalog(Request $request)
+    public function getProductCatalog(Request $request)
     {
         try {
+            // Validación de los parámetros de entrada
             $request->validate([
                 'query' => 'nullable|string',
-                'queryDate' => 'nullable|string',
+                'queryDate' => [
+                    'nullable',
+                    'string',
+                    'regex:/^\d{2}\/\d{2}\/\d{2}(,\d{2}\/\d{2}\/\d{2})?$/',
+                ],
+                'pagination' => 'nullable|boolean',  // Validamos el parámetro de paginación como booleano
             ], [
                 'query.string' => 'El parámetro de búsqueda debe ser una cadena de texto.',
                 'queryDate.string' => 'El parámetro de fechas debe ser una cadena de texto válida.',
+                'queryDate.regex' => 'El parámetro de fechas debe estar en el formato dd/mm/yy o dd/mm/yy,dd/mm/yy.',
+                'pagination.boolean' => 'El parámetro de paginación debe ser un valor booleano (true o false).',
             ]);
 
-            // Consultar productos aplicando filtros
             $query = Product::query();
 
             // Filtro por el parámetro 'query' (name, description, price, stock_quantity)
-            if ($request->has('query') && !empty($request->query)) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->query . '%')
-                      ->orWhere('description', 'like', '%' . $request->query . '%')
-                      ->orWhere('price', 'like', '%' . $request->query . '%')
-                      ->orWhere('stock_quantity', 'like', '%' . $request->query . '%');
+            if ($request->has('query') && !empty($request->input('query'))) {
+                $queryParam = $request->input('query');
+                $query->where(function ($q) use ($queryParam) {
+                    $q->where('name', 'like', '%' . $queryParam . '%')
+                        ->orWhere('description', 'like', '%' . $queryParam . '%')
+                        ->orWhere('price', 'like', '%' . $queryParam . '%')
+                        ->orWhere('stock_quantity', 'like', '%' . $queryParam . '%');
                 });
             }
 
             // Filtro por el parámetro 'queryDate' (rango de fechas)
-            if ($request->has('queryDate') && !empty($request->queryDate)) {
-                // Decodificar y obtener el rango de fechas desde 'queryDate'
-                $dates = json_decode($request->queryDate, true);
-                if (isset($dates['start_date']) && isset($dates['end_date'])) {
-                    $query->whereBetween('created_at', [
-                        Carbon::parse($dates['start_date'])->startOfDay(),
-                        Carbon::parse($dates['end_date'])->endOfDay(),
-                    ]);
+            if ($request->has('queryDate') && !empty($request->input('queryDate'))) {
+                $dates = explode(',', $request->input('queryDate'));
+                if (count($dates) == 2) {
+                    $startDate = Carbon::createFromFormat('d/m/y', trim($dates[0]))->startOfDay();
+                    $endDate = Carbon::createFromFormat('d/m/y', trim($dates[1]))->endOfDay();
+                } else {
+                    $startDate = Carbon::createFromFormat('d/m/y', trim($dates[0]))->startOfDay();
+                    $endDate = $startDate->copy()->endOfDay();
                 }
+                $query->whereBetween('created_at', [$startDate, $endDate]);
             }
 
-            // Paginación: 10 resultados por página
-            $products = $query->paginate(10);
+            // Comprobamos el parámetro de paginación y lo tratamos como booleano
+            $pagination = filter_var($request->input('pagination', 'true'), FILTER_VALIDATE_BOOLEAN);
 
-            // Respuesta exitosa con productos paginados
-            return response()->json([
-                'status' => 'success',
-                'products' => $products,
-            ], 200);
+            if ($pagination) {
+                $products = $query->paginate(10);  // Paginación activada
+                $response = [
+                    'status' => 'success',
+                    'products' => [
+                        'data' => $products->items(),
+                        'pagination' => [
+                            'current_page' => $products->currentPage(),
+                            'total' => $products->total(),
+                            'per_page' => $products->perPage(),
+                            'last_page' => $products->lastPage(),
+                            'first_page_url' => $products->url(1),
+                            'last_page_url' => $products->url($products->lastPage()),
+                            'next_page_url' => $products->nextPageUrl(),
+                            'prev_page_url' => $products->previousPageUrl(),
+                            'path' => $products->path(),
+                            'from' => $products->firstItem(),
+                            'to' => $products->lastItem(),
+                        ],
+                    ],
+                ];
+            } else {
+                // Si la paginación está desactivada, devolvemos todos los productos sin paginar
+                $products = $query->get();  // No paginamos
+                $response = [
+                    'status' => 'success',
+                    'products' => $products,
+                ];
+            }
 
+            return response()->json($response, 200);
         } catch (ValidationException $e) {
-            // En caso de error de validación, retornar mensaje de error
             return response()->json([
                 'status' => 'error',
-                'message' => 'Error en la validación de los datos.',
+                'message' => 'Error de validación.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            // En caso de otros errores generales
             return response()->json([
                 'status' => 'error',
-                'message' => 'Hubo un problema al obtener los productos. Intente de nuevo más tarde.',
-                'error' => $e->getMessage(),
+                'message' => 'Ocurrió un error al procesar la solicitud.',
+                'details' => $e->getMessage(),
             ], 500);
         }
-    } */
+    }
+
 
     public function create(Request $request)
     {
@@ -109,7 +142,6 @@ class ProductController extends Controller
                 'message' => 'Producto creado con éxito.',
                 'product' => $product,
             ], 201);
-
         } catch (ValidationException $e) {
             // Si ocurre un error de validación, se retornan los errores
             return response()->json([
@@ -176,7 +208,6 @@ class ProductController extends Controller
                 'message' => 'Producto actualizado con éxito.',
                 'product' => $product,
             ], 200);
-
         } catch (ValidationException $e) {
             // Si ocurre un error de validación, se retornan los errores
             return response()->json([
@@ -216,7 +247,6 @@ class ProductController extends Controller
                 'status' => 'success',
                 'message' => 'Producto eliminado con éxito.',
             ], 200);
-
         } catch (\Exception $e) {
             // Si ocurre un error inesperado, capturamos el error y retornamos un mensaje de error
             return response()->json([
