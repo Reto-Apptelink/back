@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,9 +20,10 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->word,
-            'description' => $this->faker->sentence,
-            'price' => $this->faker->randomFloat(2, 5, 100), // random price between 5 and 100
+            'name' => $this->faker->word, // Genera un nombre de producto
+            'description' => $this->faker->sentence, // Genera una descripción
+            'price' => $this->faker->randomFloat(2, 5, 100), // Genera un precio entre 5 y 100 con 2 decimales
+            'stock_quantity' => $this->faker->numberBetween(1, 100), // Genera una cantidad de stock entre 1 y 100
         ];
     }
 }

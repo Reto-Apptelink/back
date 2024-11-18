@@ -22,12 +22,12 @@ class ProductController extends Controller
                     'string',
                     'regex:/^\d{2}\/\d{2}\/\d{2}(,\d{2}\/\d{2}\/\d{2})?$/',
                 ],
-                'pagination' => 'nullable|boolean',  // Validamos el parámetro de paginación como booleano
+                'pagination' => 'nullable|boolean',
             ], [
                 'query.string' => 'El parámetro de búsqueda debe ser una cadena de texto.',
                 'queryDate.string' => 'El parámetro de fechas debe ser una cadena de texto válida.',
                 'queryDate.regex' => 'El parámetro de fechas debe estar en el formato dd/mm/yy o dd/mm/yy,dd/mm/yy.',
-                'pagination.boolean' => 'El parámetro de paginación debe ser un valor booleano (true o false).',
+                'pagination.boolean' => 'El parámetro de paginación debe ser un valor booleano (true 1 o false 0).',
             ]);
 
             $query = Product::query();
@@ -60,7 +60,7 @@ class ProductController extends Controller
             $pagination = filter_var($request->input('pagination', 'true'), FILTER_VALIDATE_BOOLEAN);
 
             if ($pagination) {
-                $products = $query->paginate(10);  // Paginación activada
+                $products = $query->paginate(10);
                 $response = [
                     'status' => 'success',
                     'products' => [
@@ -82,7 +82,7 @@ class ProductController extends Controller
                 ];
             } else {
                 // Si la paginación está desactivada, devolvemos todos los productos sin paginar
-                $products = $query->get();  // No paginamos
+                $products = $query->get();
                 $response = [
                     'status' => 'success',
                     'products' => $products,
@@ -104,7 +104,6 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
 
     public function create(Request $request)
     {
