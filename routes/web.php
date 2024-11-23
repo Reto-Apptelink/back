@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthUserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('page.auth.welcome');
 });
+
+Route::get('/register', [AuthUserController::class, 'registerIndex'])->name('app.user.register');
+Route::get('/password-recovery', [AuthUserController::class, 'passwordRecovery'])->name('app.user.password.recovery');
