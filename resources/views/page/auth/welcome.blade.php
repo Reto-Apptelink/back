@@ -9,7 +9,7 @@
         <div class="col-md-6 my-auto login-form">
 
             <h3 class="mb-4">Bienvenido de nuevo</h3>
-            <form>
+            <form id="authForm">
                 <div class="mb-3">
                     <input type="email" class="form-control" placeholder="Correo electrónico" required>
                 </div>
@@ -65,4 +65,7 @@
 @endsection
 
 @push('scripts_app')
+<script>
+
+</script>
 @endpush
