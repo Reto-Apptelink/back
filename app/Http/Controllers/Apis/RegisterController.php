@@ -29,6 +29,7 @@ class RegisterController extends Controller
 
             // Retornar respuesta de éxito
             return response()->json([
+                'success' => true,
                 'message' => 'Usuario registrado con éxito.',
                 'user' => $user,
             ], 201);
@@ -36,12 +37,14 @@ class RegisterController extends Controller
         } catch (ValidationException $e) {
             // Manejo de errores de validación
             return response()->json([
+                'success' => false,
                 'message' => 'Errores de validación.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (Exception $e) {
             // Manejo de otros errores generales
             return response()->json([
+                'success' => false,
                 'message' => 'Hubo un error al registrar el usuario.',
                 'error' => $e->getMessage(),
             ], 500);

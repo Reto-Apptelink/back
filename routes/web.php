@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthUserController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,3 +21,9 @@ Route::get('/', function () {
 
 Route::get('/register', [AuthUserController::class, 'registerIndex'])->name('app.user.register');
 Route::get('/password-recovery', [AuthUserController::class, 'passwordRecovery'])->name('app.user.password.recovery');
+
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+});
+

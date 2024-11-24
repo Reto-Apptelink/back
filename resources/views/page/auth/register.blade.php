@@ -3,6 +3,31 @@
 
 @section('content-auth')
 
+@component('components.organisms.modal.modal_response_messages', [
+'modalId' => 'validationMessageModal',
+'dataBsBackdrop' => 'data-bs-backdrop="static"',
+'modalDialogClass' => 'modal-sm modal-dialog-centered modal-dialog-scrollable',
+'modalHeaderClass' => 'border-0 justify-content-center pb-0',
+'modalTitleClass' => 'h6 fw-bold',
+'modalTitle' => 'Error',
+'showCloseButton' => false,
+'modalBodyClass' => 'text-center',
+'modalFooterClass' => 'border-0 pt-0',
+'modalFooter' => '<button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">Aceptar</button>'
+])
+@if($errors->any())
+<ul class="list-group list-group-flush text-start fs-sm">
+    @foreach ($errors->all() as $error)
+    <li class="list-group-item border-0 py-0">{{ $error }}</li>
+    @endforeach
+</ul>
+@elseif(session('error') && session('message'))
+<p class="text-danger fs-sm">{{ session('message') }}</p>
+@endif
+<div id="modalMessageContainer">
+</div>
+@endcomponent
+
 <div class="register-container">
     <div class="row">
         <!-- Formulario de Registro -->
@@ -29,7 +54,7 @@
         </div>
 
         <!-- Banner Informativo -->
-        <div class="col-md-6 register-banner">
+        <div class="col-md-6 register-banner d-none d-md-block">
             <div class="pattern-bg"></div>
             <h2 class="mb-4">Únete a nuestro Sistema de Gestión de Inventarios Inteligente</h2>
             <p class="mb-4">Descubre cómo nuestra plataforma puede revolucionar tu gestión de inventario</p>
@@ -69,28 +94,49 @@
 <script src="{{asset('assets/js/api/apiClient.js')}}"></script>
 <script>
     async function registerUser(name, email, password) {
+        const modalMessageContainer = document.getElementById('modalMessageContainer');
+        const modalTitle = document.getElementById('validationMessageModalLabel');
+        const validationModal = new bootstrap.Modal(document.getElementById('validationMessageModal'));
+
         try {
             const userData = {
                 name,
                 email,
                 password
             };
-
-            // Enviar solicitud POST al servidor
             const response = await fetchDataFromApi('register', userData, 'POST');
 
-            // Validar respuesta del servidor
-            if (response && response.status === 'success') {
-                alert('Usuario registrado exitosamente.');
-                return true; // Indica éxito
+            // Manejar respuesta
+            if (response.success) {
+                modalTitle.textContent = 'Registro Exitoso.';
+                modalMessageContainer.innerHTML = `
+                <p class="text-success fs-sm">${response.message}</p>`;
+                validationModal.show();
+                return true;
+            } else if (response.status === 422) {
+                modalTitle.textContent = response.message || 'Errores de Validación';
+                const errorList = Object.entries(response.errors || {})
+                    .map(([field, messages]) =>
+                        messages.map(message => `<li class="list-group-item bg-transparent border-0 py-0">${message}</li>`).join('')
+                    )
+                    .join('');
+                modalMessageContainer.innerHTML = `
+                <ul class="list-group list-group-flush text-start fs-sm">${errorList}</ul>`;
+                validationModal.show();
+                return false;
             } else {
-                alert(response?.message || 'Error al registrar el usuario.');
-                return false; // Indica fallo
+                modalTitle.textContent = response.message || 'Error inesperado';
+                modalMessageContainer.innerHTML = `
+                <p class="text-danger fs-sm">${response.error || 'Ocurrió un error al registrar el usuario.'}</p>`;
+                validationModal.show();
+                return false;
             }
         } catch (error) {
-            console.error('Error al registrar el usuario:', error);
-            alert('Ocurrió un error al procesar la solicitud. Intente más tarde.');
-            return false; // Indica fallo
+            modalTitle.textContent = 'Error del Servidor';
+            modalMessageContainer.innerHTML = `
+            <p class="text-danger fs-sm">No se pudo completar la solicitud. Intente más tarde.</p>`;
+            validationModal.show();
+            return false;
         }
     }
 
@@ -106,12 +152,20 @@
 
         // Validaciones
         if (!name || !email || !password || !confirmPassword) {
-            alert('Todos los campos son obligatorios.');
+            const modalMessageContainer = document.getElementById('modalMessageContainer');
+            modalMessageContainer.innerHTML = `
+            <p class="text-danger fs-sm">Todos los campos son obligatorios.</p>`;
+            const validationModal = new bootstrap.Modal(document.getElementById('validationMessageModal'));
+            validationModal.show();
             return;
         }
 
         if (password !== confirmPassword) {
-            alert('Las contraseñas no coinciden.');
+            const modalMessageContainer = document.getElementById('modalMessageContainer');
+            modalMessageContainer.innerHTML = `
+            <p class="text-danger fs-sm">Las contraseñas no coinciden.</p>`;
+            const validationModal = new bootstrap.Modal(document.getElementById('validationMessageModal'));
+            validationModal.show();
             return;
         }
 

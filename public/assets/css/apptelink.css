@@ -205,3 +205,11 @@ body {
     margin-right: 1rem;
     font-size: 1.5rem;
 }
+
+.modal-content{
+    background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.fs-sm{
+    font-size: 0.875rem;
+}

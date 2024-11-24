@@ -3,18 +3,43 @@
 
 @section('content-auth')
 
+@component('components.organisms.modal.modal_response_messages', [
+'modalId' => 'validationMessageModal',
+'dataBsBackdrop' => 'data-bs-backdrop="static"',
+'modalDialogClass' => 'modal-sm modal-dialog-centered modal-dialog-scrollable',
+'modalHeaderClass' => 'border-0 justify-content-center pb-0',
+'modalTitleClass' => 'h6 fw-bold',
+'modalTitle' => 'Error',
+'showCloseButton' => false,
+'modalBodyClass' => 'text-center',
+'modalFooterClass' => 'border-0 pt-0',
+'modalFooter' => '<button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">Aceptar</button>'
+])
+@if($errors->any())
+<ul class="list-group list-group-flush text-start fs-sm">
+    @foreach ($errors->all() as $error)
+    <li class="list-group-item border-0 py-0">{{ $error }}</li>
+    @endforeach
+</ul>
+@elseif(session('error') && session('message'))
+<p class="text-danger fs-sm">{{ session('message') }}</p>
+@endif
+<div id="modalMessageContainer">
+</div>
+@endcomponent
+
 <div class="login-container">
     <div class="row">
         <!-- Formulario de Login -->
         <div class="col-md-6 my-auto login-form">
 
             <h3 class="mb-4">Bienvenido de nuevo</h3>
-            <form id="authForm">
+            <form class="needs-validation" novalidate id="authForm">
                 <div class="mb-3">
-                    <input type="email" class="form-control" placeholder="Correo electrónico" required>
+                    <input type="email" class="form-control" name="email" id="email" placeholder="Correo electrónico" required>
                 </div>
                 <div class="mb-3">
-                    <input type="password" class="form-control" placeholder="Contraseña" required>
+                    <input type="password" class="form-control" name="password" id="password" placeholder="Contraseña" required>
                     <a href="{{route('app.user.password.recovery')}}" class="forgot-password mt-2">¿Olvidaste tu contraseña?</a>
                 </div>
                 <button type="submit" class="btn btn-login">Iniciar Sesión</button>
@@ -65,7 +90,42 @@
 @endsection
 
 @push('scripts_app')
+<script src="{{asset('assets/js/api/apiClient.js')}}"></script>
 <script>
+    document.getElementById('authForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
 
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!email || !password) {
+            alert('Por favor, complete todos los campos.');
+            return;
+        }
+
+        try {
+            const response = await fetchDataFromApi('login', {
+                email,
+                password
+            }, 'POST');
+
+            if (response && response.status === 'success') {
+                // Guardar el token de autenticación
+                localStorage.setItem('authToken', response.token);
+
+                // Redirigir al usuario al dashboard o a la URL definida en el servidor
+                const redirectUrl = response.redirect_url || '/dashboard';
+                window.location.href = redirectUrl;
+            } else {
+                // Mostrar mensaje de error del servidor
+                const errorMessage = response?.message || 'Credenciales incorrectas.';
+                alert(errorMessage);
+            }
+        } catch (error) {
+            // Manejar errores inesperados
+            console.error(error);
+            alert('Error inesperado. Por favor, inténtelo más tarde.');
+        }
+    });
 </script>
 @endpush

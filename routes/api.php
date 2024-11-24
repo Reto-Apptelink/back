@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\Route;
 
 
 # Módulo de Autenticación
-// Route::post('/login', [AuthController::class, 'login'])->name('api.login');
-Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login'])->name('api.login');
+# Rutas Publicas
 Route::post('/register', [RegisterController::class, 'register'])->name('api.register');
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 // Route::post('/password/email', [AuthController::class, 'sendPasswordResetLink'])->name('api.sendpasswordResetLink');
 // Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('api.resetPassword');
 
