@@ -35,7 +35,7 @@ class AuthController extends Controller
                     'status' => 'success',
                     'token' => $token,
                     'data' => $user,
-                    // 'redirect_url' => route('dashboard') // URL protegida
+                    'redirect_url' => route('app.dashboard')
                 ], 200);
             } else {
                 return response()->json([

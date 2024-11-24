@@ -35,7 +35,7 @@ const API_BASE_URL = `${BASE_URL}/api-iims/digitales/v1`;
  * @param {Object} headers - Encabezados adicionales (opcional).
  * @returns {Promise<Object>} - La respuesta del servidor en formato JSON.
  */
-async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
+/* async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
     const fullUrl =
         method === 'GET'
             ? `${API_BASE_URL}/${url}?${new URLSearchParams(data)}`
@@ -74,5 +74,33 @@ async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
             status: 500,
             message: 'Error de conexión al servidor',
         };
+    }
+} */
+
+async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
+    const BASE_URL = `${window.location.origin}/api-iims/digitales/v1`;
+    const fullUrl = method === 'GET'
+        ? `${BASE_URL}/${url}?${new URLSearchParams(data)}`
+        : `${BASE_URL}/${url}`;
+
+    try {
+        const response = await fetch(fullUrl, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...headers
+            },
+            body: method !== 'GET' ? JSON.stringify(data) : null
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error en la solicitud.');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al realizar la solicitud a ${url}:`, error);
+        throw error;
     }
 }

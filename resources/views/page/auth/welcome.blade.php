@@ -112,6 +112,7 @@
             if (response && response.status === 'success') {
                 // Guardar el token de autenticación
                 localStorage.setItem('authToken', response.token);
+                localStorage.setItem('userName', response.data.name); 
 
                 // Redirigir al usuario al dashboard o a la URL definida en el servidor
                 const redirectUrl = response.redirect_url || '/dashboard';

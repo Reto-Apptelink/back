@@ -5,6 +5,7 @@ use App\Http\Controllers\Apis\AuthController;
 use App\Http\Controllers\Apis\ProductController;
 use App\Http\Controllers\Apis\CustomerController;
 use App\Http\Controllers\Apis\OrderController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,32 +21,36 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-# Módulo de Autenticación
-# Rutas Publicas
+// Módulo de Autenticación
+// Rutas públicas (No requieren autenticación)
 Route::post('/register', [RegisterController::class, 'register'])->name('api.register');
 Route::post('/login', [AuthController::class, 'login'])->name('api.login');
-// Route::post('/password/email', [AuthController::class, 'sendPasswordResetLink'])->name('api.sendpasswordResetLink');
-// Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('api.resetPassword');
 
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('api.logout');
+// Ruta para obtener el usuario autenticado (requiere autenticación con token)
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-## RECORDATORIO: PROTEGER LAS RUTAS AL IMPLEMENTAR EL FRONT
-# Módulo de Gestión de Inventarios
-// PRODUCTS
-Route::get('/products', [ProductController::class, 'getProductCatalog'])->name('api.products.catalog');
-Route::post('/register-products', [ProductController::class, 'create'])->name('api.products.create');
-Route::put('/product/{id}', [ProductController::class, 'update'])->name('api.products.update');
-Route::delete('/remove-product/{id}', [ProductController::class, 'destroy'])->name('api.products.destroy');
+// Ruta para cerrar sesión (requiere autenticación con token)
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('api.logout');
 
-// CUSTOMER
-Route::get('/customers', [CustomerController::class, 'getCustomers'])->name('api.customers.index');
-Route::post('/register-customers', [CustomerController::class, 'create'])->name('api.customers.create');
-Route::put('/customer/{id}', [CustomerController::class, 'update'])->name('api.customers.update');
-Route::delete('/remove-customer/{id}', [CustomerController::class, 'destroy'])->name('api.customers.destroy');
+// Módulo de Gestión de Inventarios (requiere autenticación con token)
+Route::middleware('auth:sanctum')->prefix('products')->group(function () {
+    Route::get('/', [ProductController::class, 'getProductCatalog'])->name('api.products.catalog');
+    Route::post('/register', [ProductController::class, 'create'])->name('api.products.create');
+    Route::put('/{id}', [ProductController::class, 'update'])->name('api.products.update');
+    Route::delete('/remove/{id}', [ProductController::class, 'destroy'])->name('api.products.destroy');
+});
 
-# Módulo de Facturación
-// ORDER
-Route::post('/register-orders', [OrderController::class, 'create'])->name('api.order.create');
+// Módulo de Gestión de Clientes (requiere autenticación con token)
+Route::middleware('auth:sanctum')->prefix('customers')->group(function () {
+    Route::get('/', [CustomerController::class, 'getCustomers'])->name('api.customers.index');
+    Route::post('/register', [CustomerController::class, 'create'])->name('api.customers.create');
+    Route::put('/{id}', [CustomerController::class, 'update'])->name('api.customers.update');
+    Route::delete('/remove/{id}', [CustomerController::class, 'destroy'])->name('api.customers.destroy');
+});
+
+// Módulo de Facturación (requiere autenticación con token)
+Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+    Route::post('/register', [OrderController::class, 'create'])->name('api.orders.create');
+});

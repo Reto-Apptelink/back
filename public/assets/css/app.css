@@ -1,0 +1,75 @@
+
+body {
+    background: linear-gradient(135deg, #1a1a1a, #2d4d4d);
+    min-height: 100vh;
+    color: white;
+}
+
+.navbar {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+}
+
+.navbar-brand img {
+    height: 40px;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #2ecc71 !important;
+}
+
+.dropdown-menu {
+    background-color: #333;
+    border: none;
+}
+
+.dropdown-item {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.dropdown-item:hover {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.main-content {
+    padding: 2rem;
+}
+
+.card {
+    background-color: rgba(0, 0, 0, 0.6);
+    border: none;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-bottom: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.btn-primary {
+    background-color: #2ecc71;
+    border-color: #2ecc71;
+}
+
+.btn-primary:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+}
