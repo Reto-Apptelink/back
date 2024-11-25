@@ -9,10 +9,131 @@ use App\Models\Product;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
+    public function getOrders(Request $request)
+    {
+        try {
+            $request->validate([
+                'query' => 'nullable|string|max:255',
+                'queryDate' => [
+                    'nullable',
+                    'string',
+                    'regex:/^\d{2}\/\d{2}\/\d{2}(,\d{2}\/\d{2}\/\d{2})?$/',
+                ],
+                'pagination' => 'nullable|boolean',
+                'per_page' => 'nullable|integer|min:1',
+            ], [
+                'query.string' => 'El parámetro de búsqueda debe ser una cadena de texto válida.',
+                'queryDate.regex' => 'El parámetro de fechas debe estar en el formato dd/mm/yy o dd/mm/yy,dd/mm/yy.',
+                'pagination.boolean' => 'El parámetro de paginación debe ser true o false.',
+                'per_page.integer' => 'El número de elementos por página debe ser un entero positivo.',
+            ]);
+
+            $paginate = filter_var($request->input('pagination'), FILTER_VALIDATE_BOOLEAN);
+            $query = Order::with(['customer', 'details.product'])->orderBy('id', 'desc');
+
+            // Filtro por búsqueda general (order_id, customer_name, product_name)
+            if ($request->filled('query')) {
+                $searchQuery = $request->input('query');
+                $query->where(function ($q) use ($searchQuery) {
+                    // Validar si el valor es numérico antes de buscar en 'id'
+                    if (is_numeric($searchQuery)) {
+                        $q->where('id', $searchQuery); // Número de orden exacto
+                    }
+
+                    $q->orWhereHas('customer', function ($subQuery) use ($searchQuery) {
+                        $subQuery->where('name', 'like', '%' . $searchQuery . '%');
+                    })->orWhereHas('details.product', function ($subQuery) use ($searchQuery) {
+                        $subQuery->where('name', 'like', '%' . $searchQuery . '%');
+                    });
+                });
+            }
+
+            // Filtro por rango de fechas
+            if ($request->filled('queryDate')) {
+                $dates = explode(',', $request->input('queryDate'));
+                try {
+                    if (count($dates) == 2) {
+                        $startDate = Carbon::createFromFormat('d/m/y', trim($dates[0]))->startOfDay();
+                        $endDate = Carbon::createFromFormat('d/m/y', trim($dates[1]))->endOfDay();
+                    } else {
+                        $startDate = Carbon::createFromFormat('d/m/y', trim($dates[0]))->startOfDay();
+                        $endDate = $startDate->copy()->endOfDay();
+                    }
+                    $query->whereBetween('created_at', [$startDate, $endDate]);
+                } catch (\Exception $e) {
+                    throw ValidationException::withMessages([
+                        'queryDate' => 'El rango de fechas es inválido.',
+                    ]);
+                }
+            }
+
+            // Aplicar paginación
+            if ($paginate) {
+                $perPage = $request->input('per_page', 15);
+                $orders = $query->paginate($perPage);
+            } else {
+                $orders = $query->get();
+            }
+
+            // Mapear datos de las órdenes
+            $mappedOrders = $orders->map(function ($order) {
+                return [
+                    'order_id' => $order->id,
+                    'customer_name' => optional($order->customer)->name,
+                    'order_date' => $order->created_at->format('Y-m-d H:i:s'),
+                    'details' => $order->details->map(function ($detail) {
+                        return [
+                            'detail_id' => $detail->id,
+                            'product_id' => $detail->product_id,
+                            'product_name' => optional($detail->product)->name,
+                            'quantity' => $detail->quantity,
+                            'unit_price' => $detail->unit_price,
+                            'subtotal' => $detail->quantity * $detail->unit_price,
+                        ];
+                    }),
+                ];
+            });
+
+            // Respuesta con o sin paginación
+            $response = [
+                'code' => 200,
+                'success' => true,
+                'message' => $orders->isNotEmpty() ? 'Órdenes encontradas.' : 'No se encontraron órdenes.',
+                'data' => $mappedOrders,
+            ];
+
+            if ($paginate) {
+                $response['pagination'] = [
+                    'total' => $orders->total(),
+                    'per_page' => $orders->perPage(),
+                    'current_page' => $orders->currentPage(),
+                    'last_page' => $orders->lastPage(),
+                    'first_page_url' => $orders->url(1),
+                    'last_page_url' => $orders->url($orders->lastPage()),
+                    'next_page_url' => $orders->nextPageUrl(),
+                    'prev_page_url' => $orders->previousPageUrl(),
+                    'path' => $orders->path(),
+                    'from' => $orders->firstItem(),
+                    'to' => $orders->lastItem(),
+                ];
+            }
+
+            return response()->json($response);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hubo un problema al obtener las órdenes.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
     public function create(Request $request)
     {
         $request->validate([
@@ -35,7 +156,7 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
-            
+
             $order = Order::create([
                 'customer_id' => $request->customer_id,
                 'user_id' => $request->user_id,

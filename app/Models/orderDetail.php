@@ -16,6 +16,18 @@ class orderDetail extends Model
         'quantity',
         'unit_price',
         'subtotal',
-
     ];
+
+    // Relación con producto
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    // Relación con orden
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+    
 }

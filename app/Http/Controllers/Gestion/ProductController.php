@@ -14,4 +14,8 @@ class ProductController extends Controller
     public function createForm() {
         return view('page.product.create');
     }
+
+    public function editForm() {
+        return view('page.product.edit');
+    }
 }

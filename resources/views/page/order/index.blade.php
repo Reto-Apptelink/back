@@ -1,5 +1,5 @@
 @extends('template.app.app')
-@section('header_title') {{__('Product Catalog')}} @endsection
+@section('header_title') {{__('Orders')}} @endsection
 
 @section('content-main')
 @component('components.organisms.modal.modal_response_messages', [
@@ -27,17 +27,17 @@
 </div>
 @endcomponent
 
-<h1 class="mb-4 text-white">Lista de Productos</h1>
+<h1 class="mb-4 text-white">{{__('Lista de Pedidos')}}</h1>
 
 <div class="row mb-4">
     <div class="col-md-6 mb-3 mb-md-0">
-        <input type="text" class="form-control" name="query" id="query" placeholder="Buscar productos...">
+        <input type="text" class="form-control" name="query" id="query" placeholder="Buscar orders...">
     </div>
     <div class="col-md-3 mb-3 mb-md-0 d-none">
         <input type="date" class="form-control" name="queryDate" id="queryDate" placeholder="Filtrar por fecha">
     </div>
     <div class="col-md-3 ms-auto">
-        <a href="{{route('app.product.create.form')}}" class="btn btn-primary w-100">{{__('Nuevo producto')}}</a>
+        <a href="{{route('app.order.create.form')}}" class="btn btn-primary w-100">{{__('Nuevo pedido')}}</a>
     </div>
 </div>
 
@@ -46,16 +46,17 @@
         <thead>
             <tr>
                 <th class="text-light">ID</th>
-                <th class="text-light">Nombre</th>
-                <th class="text-light">Descripción</th>
-                <th class="text-light">Precio</th>
-                <th class="text-light">Stock</th>
+                <th class="text-light">Cliente</th>
                 <th class="text-light">Fecha</th>
+                <th class="text-light">Producto</th>
+                <th class="text-light">Cantidad</th>
+                <th class="text-light">Precio/U</th>
+                <th class="text-light">Subtotal</th>
                 <th class="text-light">Acción</th>
             </tr>
         </thead>
-        <tbody id="product-table-body">
-            <td colspan="7" class="fs-sm align-middle text-center">
+        <tbody id="order-table-body">
+            <td colspan="8" class="fs-sm align-middle text-center">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
@@ -66,10 +67,10 @@
 
 <div class="row align-items-center justify-content-between py-2 pe-0 fs-sm text-white">
     <div class="col-auto d-flex">
-        <span class="fs-sm" id="page-info-product"></span>
+        <span class="fs-sm" id="page-info-order"></span>
     </div>
     <div class="col-auto d-flex">
-        <ul class="fs-sm mb-0 pagination align-items-center" id="paginationBodyProduct"></ul>
+        <ul class="fs-sm mb-0 pagination align-items-center" id="paginationBodyOrder"></ul>
     </div>
 </div>
 
@@ -79,24 +80,23 @@
 <script src="{{asset('assets/js/api/apiClient.js')}}"></script>
 <script src="{{asset('assets/js/helpers/utils.js')}}"></script>
 <script>
-
     document.getElementById('query').addEventListener('input', function() {
         let query = this.value;
         if (query.length >= 4 || query.length === 0) {
-            productCatalog(1);
+            orderList(1);
         }
     });
 
-    productCatalog(1);
+    orderList(1);
 
-    async function productCatalog(page) {
+    async function orderList(page) {
         let query = document.getElementById('query').value.trim();
-        let queryDate = document.getElementById('queryDate').value;
+        let queryDate = document.getElementById('queryDate').value.trim();
         let encodeDate = queryDate.replace(' to ', ',');
         query = encodeURIComponent(query);
-        currentPage = page === undefined ? currentPage : page;
+        const currentPage = page === undefined ? 1 : page;
 
-        const url = `products`;
+        const url = `orders`;
         const queryParams = new URLSearchParams({
             query: query,
             queryDate: encodeDate,
@@ -107,60 +107,86 @@
             'Authorization': `Bearer ${token}`,
             "Accept": "application/json",
         };
+
         const data = await fetchDataFromApi(url, queryParams, 'GET', headers);
-        const tableBody = document.getElementById('product-table-body');
-        tableBody.innerHTML = '';
+
+        const tableBody = document.getElementById('order-table-body');
+        tableBody.innerHTML = ''; // Limpiar la tabla antes de cargar los datos
+
         if (data && data.success) {
-            if (data.data.productCatalog.length === 0) {
+            if (data.data.length === 0) {
                 tableBody.innerHTML = `
-                    <tr class="position-static products-row">
-                        <td colspan="7" class="text-center fs-sm">
-                            <p class="fw-bo text-900 mb-0">No se encontraron resultados.</p>
+                <tr>
+                    <td colspan="8" class="text-center fs-sm">
+                        <p class="fw-bold text-900 mb-0">No se encontraron resultados.</p>
+                    </td>
+                </tr>
+            `;
+            } else {
+                data.data.forEach(order => {
+                    // Primera fila con rowspan
+                    const rowSpan = order.details.length;
+                    const firstRow = `
+                    <tr>
+                        <td rowspan="${rowSpan}" class="align-middle white-space-nowrap fw-semi-bold border-end text-1100 px-2 py-0">${order.order_id}</td>
+                        <td rowspan="${rowSpan}" class="align-middle white-space-nowrap fw-semi-bold border-end text-1100 px-2 py-0">${order.customer_name}</td>
+                        <td rowspan="${rowSpan}" class="align-middle white-space-nowrap fw-semi-bold border-end text-1100 px-2 py-0">${new Date(order.order_date).toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                        <td>${order.details[0].product_name}</td>
+                        <td>${order.details[0].quantity}</td>
+                        <td>${order.details[0].unit_price}</td>
+                        <td>${order.details[0].subtotal}</td>
+                        <td rowspan="${rowSpan}" class="align-middle white-space-nowrap fw-semi-bold border-start text-1100 px-2 py-0">
+                            <button class="btn btn-sm btn-primary me-2" onclick="editOrder(${order.order_id})">Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.order_id})">Eliminar</button>
                         </td>
                     </tr>
                 `;
-            } else {
-                data.data.productCatalog.forEach(product => {
-                    const row = `
+
+                    tableBody.innerHTML += firstRow;
+
+                    // Filas adicionales para detalles
+                    for (let i = 1; i < order.details.length; i++) {
+                        const detailRow = `
                         <tr>
-                            <td>${product.id}</td>
-                            <td>${product.name}</td>
-                            <td>${product.description}</td>
-                            <td>$${product.price}</td>
-                            <td>${product.stock_quantity}</td>
-                            <td>${new Date(product.created_at).toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary me-1" onclick="editProduct(${product.id})"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})"><i class="fas fa-trash"></i></button>
-                            </td>
+                            <td>${order.details[i].product_name}</td>
+                            <td>${order.details[i].quantity}</td>
+                            <td>${order.details[i].unit_price}</td>
+                            <td>${order.details[i].subtotal}</td>
                         </tr>
                     `;
-                    tableBody.innerHTML += row;
+                        tableBody.innerHTML += detailRow;
+                    }
                 });
             }
-            footerProductCatalog(data.data.pagination);
+
+            // Actualizar la paginación
+            if (data.pagination) {
+                footerOrders(data.pagination);
+            }
         } else {
             tableBody.innerHTML = `
-                <tr class="position-static products-row">
-                    <td colspan="7" class="text-center fs-sm"><p class="fw-bo text-900 mb-0">No se encontraron resultados.</p></td>
-                </tr>
-            `;
+            <tr>
+                <td colspan="8" class="text-center fs-sm">
+                    <p class="fw-bold text-900 mb-0">Hubo un problema al cargar las órdenes.</p>
+                </td>
+            </tr>
+        `;
         }
-        // contadores(data.data.counts);
     }
 
-    async function editProduct(productId) {
-        window.location.href = `/product/edit?id=${productId}`;
+
+    async function editOrder(orderId) {
+        window.location.href = `/product/edit?id=${orderId}`;
     }
 
-    async function deleteProduct(productId) {
+    async function deleteOrder(orderId) {
         const modalMessageContainer = document.getElementById('modalMessageContainer');
         const modalTitle = document.getElementById('validationMessageModalLabel');
         const validationModal = new bootstrap.Modal(document.getElementById('validationMessageModal'));
         const confirmDelete = confirm('¿Estás seguro de que deseas eliminar este producto?');
 
         if (confirmDelete) {
-            const url = `products/remove/${productId}`;
+            const url = `products/remove/${orderId}`;
             const headers = {
                 'Authorization': `Bearer ${token}`,
                 "Accept": "application/json",
@@ -182,14 +208,14 @@
         }
     }
 
-    function footerProductCatalog(data) {
+    function footerOrders(data) {
         pagination(
             data,
-            'paginationBodyProduct',
-            'page-info-product',
-            'btn-prev-product',
-            'btn-next-product',
-            productCatalog
+            'paginationBodyOrder',
+            'page-info-order',
+            'btn-prev-order',
+            'btn-next-order',
+            orderList
         )
     }
 </script>

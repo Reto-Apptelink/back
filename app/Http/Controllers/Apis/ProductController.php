@@ -60,7 +60,7 @@ class ProductController extends Controller
             $pagination = filter_var($request->input('pagination', 'true'), FILTER_VALIDATE_BOOLEAN);
 
             if ($pagination) {
-                $products = $query->paginate(1);
+                $products = $query->orderBy('id', 'desc')->paginate(10);
                 $response = [
                     'success' => true,
                     'data' => [
@@ -82,7 +82,7 @@ class ProductController extends Controller
                 ];
             } else {
                 // Si la paginación está desactivada, devolvemos todos los productos sin paginar
-                $products = $query->get();
+                $products = $query->orderBy('id', 'desc')->get();
                 $response = [
                     'success' => true,
                     'data' => [
@@ -160,9 +160,39 @@ class ProductController extends Controller
         }
     }
 
+    public function showProduct(Request $request, $id)
+    {
+        try {
+            // Buscar el producto por ID
+            $product = Product::find($id);
+
+            // Validar si el producto existe
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado.',
+                ], 404);
+            }
+
+            // Retornar respuesta exitosa con los datos del producto
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto encontrado con éxito.',
+                'product' => $product,
+            ], 200);
+        } catch (\Exception $e) {
+            // Capturar cualquier error inesperado y devolver un mensaje genérico
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al obtener el producto.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
     public function update(Request $request, $id)
     {
-        // Validación personalizada
         try {
             // Validamos los datos recibidos
             $request->validate([
@@ -190,7 +220,7 @@ class ProductController extends Controller
             // Si no se encuentra el producto, retornar un error
             if (!$product) {
                 return response()->json([
-                    'status' => 'error',
+                    'success' => false,
                     'message' => 'Producto no encontrado.',
                 ], 404);
             }
@@ -205,21 +235,21 @@ class ProductController extends Controller
 
             // Respuesta exitosa
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'message' => 'Producto actualizado con éxito.',
                 'product' => $product,
             ], 200);
         } catch (ValidationException $e) {
             // Si ocurre un error de validación, se retornan los errores
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Error en la validación de los datos.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             // Capturar cualquier otro error (por ejemplo, base de datos)
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Hubo un problema al actualizar el producto. Intente de nuevo más tarde.',
                 'error' => $e->getMessage(),
             ], 500);
@@ -235,7 +265,7 @@ class ProductController extends Controller
             // Si no se encuentra el producto, retornar un error 404
             if (!$product) {
                 return response()->json([
-                    'status' => 'error',
+                    'success' => false,
                     'message' => 'Producto no encontrado.',
                 ], 404);
             }
@@ -245,13 +275,13 @@ class ProductController extends Controller
 
             // Respuesta exitosa
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'message' => 'Producto eliminado con éxito.',
             ], 200);
         } catch (\Exception $e) {
             // Si ocurre un error inesperado, capturamos el error y retornamos un mensaje de error
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Hubo un problema al eliminar el producto. Intente de nuevo más tarde.',
                 'error' => $e->getMessage(),
             ], 500);

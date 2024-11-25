@@ -18,4 +18,16 @@ class Order extends Model
         'discount',
         'total_amount',
     ];
+
+    // Relación con detalles de la orden
+    public function details()
+    {
+        return $this->hasMany(OrderDetail::class, 'order_id');
+    }
+
+    // Relación con cliente
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
 }

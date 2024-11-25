@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::middleware('auth:sanctum')->prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'getProductCatalog'])->name('api.products.catalog');
     Route::post('/register', [ProductController::class, 'create'])->name('api.products.create');
+    Route::get('/{id}', [ProductController::class, 'showProduct'])->name('api.products.show');
     Route::put('/{id}', [ProductController::class, 'update'])->name('api.products.update');
     Route::delete('/remove/{id}', [ProductController::class, 'destroy'])->name('api.products.destroy');
 });
@@ -52,5 +53,6 @@ Route::middleware('auth:sanctum')->prefix('customers')->group(function () {
 
 // Módulo de Facturación (requiere autenticación con token)
 Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+    Route::get('/', [OrderController::class, 'getOrders'])->name('api.orders.index');
     Route::post('/register', [OrderController::class, 'create'])->name('api.orders.create');
 });

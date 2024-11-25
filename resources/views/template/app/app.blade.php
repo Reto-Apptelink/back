@@ -46,8 +46,8 @@
                             Pedidos
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="pedidosDropdown">
-                            <li><a class="dropdown-item" href="#!">Lista</a></li>
-                            <li><a class="dropdown-item" href="#!">Crear</a></li>
+                            <li><a class="dropdown-item" href="{{route('app.order.index')}}">Lista</a></li>
+                            <li><a class="dropdown-item" href="{{route('app.order.create.form')}}">Crear</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

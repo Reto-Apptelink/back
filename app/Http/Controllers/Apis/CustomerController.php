@@ -40,9 +40,9 @@ class CustomerController extends Controller
             if ($pagination) {
                 $customers = $query->paginate(10);
                 $response = [
-                    'status' => 'success',
-                    'customers' => [
-                        'data' => $customers->items(),
+                    'success' => true,
+                    'data' => [
+                        'customers' => $customers->items(),
                         'pagination' => [
                             'current_page' => $customers->currentPage(),
                             'total' => $customers->total(),
@@ -61,7 +61,7 @@ class CustomerController extends Controller
             } else {
                 $customers = $query->get();
                 $response = [
-                    'status' => 'success',
+                    'success' => true,
                     'customers' => $customers,
                 ];
             }
@@ -69,13 +69,13 @@ class CustomerController extends Controller
             return response()->json($response, 200);
         } catch (ValidationException $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Error de validación.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Ocurrió un error al procesar la solicitud.',
                 'details' => $e->getMessage(),
             ], 500);
