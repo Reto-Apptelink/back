@@ -64,7 +64,7 @@
                         </div>
                     </div>
                     <div class="col-s-12 col-lg-4 mx-auto">
-                        <button type="submit" class="btn btn-primary w-100">Crear Producto</button>
+                        <button type="submit" class="btn btn-primary w-100">Actualizar Producto</button>
                     </div>
                 </form>
             </div>
