@@ -24,3 +24,4 @@ Route::get('/register', [AuthUserController::class, 'registerIndex'])->name('app
 Route::get('/password-recovery', [AuthUserController::class, 'passwordRecovery'])->name('app.user.password.recovery');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('app.dashboard');
 Route::get('/product', [ProductController::class, 'index'])->name('app.product.index');
+Route::get('/product-create', [ProductController::class, 'createForm'])->name('app.product.create.form');

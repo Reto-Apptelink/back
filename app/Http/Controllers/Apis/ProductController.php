@@ -60,11 +60,11 @@ class ProductController extends Controller
             $pagination = filter_var($request->input('pagination', 'true'), FILTER_VALIDATE_BOOLEAN);
 
             if ($pagination) {
-                $products = $query->paginate(10);
+                $products = $query->paginate(1);
                 $response = [
-                    'status' => 'success',
-                    'products' => [
-                        'data' => $products->items(),
+                    'success' => true,
+                    'data' => [
+                        'productCatalog' => $products->items(),
                         'pagination' => [
                             'current_page' => $products->currentPage(),
                             'total' => $products->total(),
@@ -84,21 +84,23 @@ class ProductController extends Controller
                 // Si la paginación está desactivada, devolvemos todos los productos sin paginar
                 $products = $query->get();
                 $response = [
-                    'status' => 'success',
-                    'products' => $products,
+                    'success' => true,
+                    'data' => [
+                        'productCatalog' => $products,
+                    ]
                 ];
             }
 
             return response()->json($response, 200);
         } catch (ValidationException $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Error de validación.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Ocurrió un error al procesar la solicitud.',
                 'details' => $e->getMessage(),
             ], 500);
@@ -137,21 +139,21 @@ class ProductController extends Controller
 
             // Respuesta exitosa
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'message' => 'Producto creado con éxito.',
                 'product' => $product,
             ], 201);
         } catch (ValidationException $e) {
             // Si ocurre un error de validación, se retornan los errores
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Error en la validación de los datos.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             // Capturar cualquier otro error (por ejemplo, base de datos)
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Hubo un problema al crear el producto. Intente de nuevo más tarde.',
                 'error' => $e->getMessage(),
             ], 500);

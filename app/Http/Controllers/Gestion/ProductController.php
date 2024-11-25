@@ -10,4 +10,8 @@ class ProductController extends Controller
     public function index() {
         return view('page.product.index');
     }
+
+    public function createForm() {
+        return view('page.product.create');
+    }
 }

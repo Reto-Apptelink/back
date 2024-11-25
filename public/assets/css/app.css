@@ -1,8 +1,7 @@
-
 body {
     background: linear-gradient(135deg, #1a1a1a, #2d4d4d);
     min-height: 100vh;
-    color: white;
+    /* color: white; */
 }
 
 .navbar {
@@ -72,4 +71,77 @@ body {
 .btn-primary:hover {
     background-color: #27ae60;
     border-color: #27ae60;
+}
+
+.table {
+    color: white;
+}
+
+.table thead th {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-color: rgba(46, 204, 113, 0.2);
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+}
+
+.pagination .page-link {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-color: rgba(46, 204, 113, 0.2);
+    color: white;
+}
+
+.pagination .page-link:hover {
+    background-color: rgba(46, 204, 113, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #2ecc71;
+    border-color: #2ecc71;
+}
+
+.form-control,
+.form-select {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 0.25rem rgba(46, 204, 113, 0.25);
+    color: white;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.modal-content{
+    background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.fs-sm{
+    font-size: 0.875rem;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
 }

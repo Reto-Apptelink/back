@@ -35,7 +35,7 @@ const API_BASE_URL = `${BASE_URL}/api-iims/digitales/v1`;
  * @param {Object} headers - Encabezados adicionales (opcional).
  * @returns {Promise<Object>} - La respuesta del servidor en formato JSON.
  */
-/* async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
+async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
     const fullUrl =
         method === 'GET'
             ? `${API_BASE_URL}/${url}?${new URLSearchParams(data)}`
@@ -75,9 +75,9 @@ const API_BASE_URL = `${BASE_URL}/api-iims/digitales/v1`;
             message: 'Error de conexión al servidor',
         };
     }
-} */
+}
 
-async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
+/* async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
     const BASE_URL = `${window.location.origin}/api-iims/digitales/v1`;
     const fullUrl = method === 'GET'
         ? `${BASE_URL}/${url}?${new URLSearchParams(data)}`
@@ -103,4 +103,4 @@ async function fetchDataFromApi(url, data = {}, method = 'GET', headers = {}) {
         console.error(`Error al realizar la solicitud a ${url}:`, error);
         throw error;
     }
-}
+} */
